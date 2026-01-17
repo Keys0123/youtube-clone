@@ -3,7 +3,7 @@ name: Frontend & Backend CI/CD (Docker Hub)
 on:
   push:
     branches:
-      - main
+      - staging
 
 jobs:
   build-and-push:
