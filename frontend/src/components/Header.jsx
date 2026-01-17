@@ -43,7 +43,7 @@ export default function Header() {
         <div className="flex items-center gap-2">
           <div className="text-2xl font-bold text-red-600">▶</div>
           <div className="text-xl font-semibold text-gray-900 dark:text-white">
-            Umesh sexy 
+            Umesh sexy You
           </div>
         </div>
 
