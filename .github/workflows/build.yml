@@ -45,29 +45,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: appleboy/ssh-action@v0.1.7
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # 1. Define variables
+            # 1. Define variables from build job outputs
             FRONTEND_TAG=${{ needs.build.outputs.frontend_tag }}
             BACKEND_TAG=${{ needs.build.outputs.backend_tag }}
             
             cd /home/ubuntu/k8s
 
             # 2. Update the image tags in the YAML files
-            # Using [^"]* ensures we only replace the text inside the quotes
+            # [^"]* matches the old tag version inside the quotes
             sed -i "s|image: \"umes122/yt-frontend:[^\"]*\"|image: \"umes122/yt-frontend:${FRONTEND_TAG}\"|g" frontend-deployment.yml
             sed -i "s|image: \"umes122/yt-backend:[^\"]*\"|image: \"umes122/yt-backend:${BACKEND_TAG}\"|g" backend-deployment.yml
 
-            # 3. Verify the change (This will show up in your GitHub Action logs)
-            echo "Verifying image updates..."
+            # 3. Verify the change in logs
+            echo "Verifying image updates in YAML files:"
             grep "image:" frontend-deployment.yml
             grep "image:" backend-deployment.yml
 
             # 4. Apply to Kubernetes
-            # Now that we fixed permissions in Step 1, this will work
-            kubectl apply -f frontend-deployment.yml
-            kubectl apply -f backend-deployment.yml
+            # We use sudo and --kubeconfig to fix the 'permission denied' error with K3s
+            sudo kubectl apply -f frontend-deployment.yml --kubeconfig /etc/rancher/k3s/k3s.yaml
+            sudo kubectl apply -f backend-deployment.yml --kubeconfig /etc/rancher/k3s/k3s.yaml
+
+            # 5. Optional: Verify deployment status
+            echo "Checking rollout status..."
+            sudo kubectl rollout status deployment/frontend-deployment -n yt --kubeconfig /etc/rancher/k3s/k3s.yaml
+            sudo kubectl rollout status deployment/backend-deployment -n yt --kubeconfig /etc/rancher/k3s/k3s.yaml
