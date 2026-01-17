@@ -31,7 +31,7 @@ jobs:
       - name: Build & Push Frontends
         working-directory: frontend
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/yt-frontend:${{ steps.set-tags.outputs.frontend }} .
+          docker build --build-arg VITE_API_URL=/api -t ${{ secrets.DOCKERHUB_USERNAME }}/yt-frontend:${{ steps.set-tags.outputs.frontend }} .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/yt-frontend:${{ steps.set-tags.outputs.frontend }}
 
       - name: Build & Push Backend
